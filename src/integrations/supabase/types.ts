@@ -14,7 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          created_at: string
+          delivery_address: string | null
+          delivery_date: string | null
+          delivery_time: string | null
+          id: string
+          payment_id: string | null
+          payment_status: string | null
+          pickup_address: string | null
+          pickup_date: string | null
+          pickup_time: string | null
+          service_type: string
+          status: string | null
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          delivery_time?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          pickup_address?: string | null
+          pickup_date?: string | null
+          pickup_time?: string | null
+          service_type: string
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          delivery_time?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          pickup_address?: string | null
+          pickup_date?: string | null
+          pickup_time?: string | null
+          service_type?: string
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

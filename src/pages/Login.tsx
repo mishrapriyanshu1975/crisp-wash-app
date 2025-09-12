@@ -17,10 +17,12 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,22 +38,35 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    const { error } = await signIn(formData.email, formData.password);
+    
+    if (error) {
       setIsLoading(false);
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
       toast({
         title: "Login Successful!",
         description: "Welcome back to LaundryPro. Redirecting to your dashboard...",
       });
-      navigate("/orders");
-    }, 1500);
+      setTimeout(() => {
+        navigate("/orders");
+      }, 1000);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    toast({
-      title: "Google Authentication",
-      description: "Google login will be integrated with backend authentication",
-    });
+  const handleGoogleLogin = async () => {
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast({
+        title: "Google Authentication Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFacebookLogin = () => {

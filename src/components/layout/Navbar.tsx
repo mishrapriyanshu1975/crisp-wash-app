@@ -3,16 +3,33 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Droplets } from "lucide-react";
+import { 
+  Menu, 
+  X, 
+  Droplets, 
+  ChevronDown,
+  User,
+  LogOut,
+  Settings,
+  Package
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile, signOut, signInWithGoogle, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,15 +57,24 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const handleGoogleAuth = () => {
-    toast({
-      title: "Google Authentication",
-      description: "Google login functionality will be integrated with backend",
-    });
+  const handleGoogleAuth = async () => {
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast({
+        title: "Authentication Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Google Authentication",
+        description: "Signing in with Google...",
+      });
+    }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "Logged out successfully",
       description: "You have been logged out of your account",
@@ -57,7 +83,7 @@ const Navbar = () => {
   };
 
   const handleBookNow = () => {
-    if (isLoggedIn) {
+    if (user) {
       navigate("/booking");
     } else {
       navigate("/login");
@@ -66,7 +92,7 @@ const Navbar = () => {
   };
 
   const handleTrackOrder = () => {
-    if (isLoggedIn) {
+    if (user) {
       navigate("/orders");
     } else {
       navigate("/login");
@@ -125,7 +151,9 @@ const Navbar = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
-          {isLoggedIn ? (
+          {loading ? (
+            <div className="h-8 w-20 bg-muted/50 animate-pulse rounded"></div>
+          ) : user ? (
             <>
               <Button
                 variant="ghost"
@@ -137,13 +165,40 @@ const Navbar = () => {
               <Button onClick={handleBookNow} className="btn-hero">
                 Book Now
               </Button>
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="border-primary/20 text-primary hover:bg-primary/10"
-              >
-                Logout
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="btn-glass flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
+                      <span className="text-sm font-medium text-white">
+                        {profile?.first_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-sm">
+                      {profile?.first_name || user.email?.split('@')[0]}
+                    </span>
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                    <Package className="mr-2 h-4 w-4" />
+                    My Orders
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
@@ -190,7 +245,7 @@ const Navbar = () => {
               ))}
               
               <div className="border-t border-white/20 pt-6 space-y-4">
-                {isLoggedIn ? (
+                {user ? (
                   <>
                     <Button
                       onClick={handleTrackOrder}
