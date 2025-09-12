@@ -77,6 +77,14 @@ const Signup = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
     if (!formData.agreeToTerms) {
       toast({
         title: "Terms Required",
@@ -88,28 +96,82 @@ const Signup = () => {
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error } = await signUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
+      
+      if (error) {
+        toast({
+          title: "Signup Failed",
+          description: error.message || "Failed to create account",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Account Created Successfully!",
-        description: "Welcome to LaundryPro! Please check your email for verification.",
+        description: "Welcome to LaundryPro! You can now sign in to your account.",
       });
+      
+      // Clear form
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        agreeToTerms: false,
+        subscribeNewsletter: false
+      });
+      
+      // Navigate to login
       navigate("/login");
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Signup Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleSignup = () => {
-    toast({
-      title: "Google Registration",
-      description: "Google signup will be integrated with backend authentication",
-    });
+  const handleGoogleSignup = async () => {
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        toast({
+          title: "Google Signup Failed",
+          description: error.message || "Failed to sign up with Google",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Redirecting to Google",
+          description: "Please complete signup in the popup window",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Signup Error",
+        description: "Failed to initiate Google signup",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFacebookSignup = () => {
     toast({
-      title: "Facebook Registration",
-      description: "Facebook signup will be integrated with backend authentication",
+      title: "Facebook Signup",
+      description: "Facebook authentication is not configured yet",
+      variant: "destructive",
     });
   };
 

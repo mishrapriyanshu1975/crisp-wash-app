@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -38,32 +39,55 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signIn(formData.email, formData.password);
-    
-    if (error) {
-      setIsLoading(false);
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      const { error } = await signIn(formData.email, formData.password);
+      
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message || "Please check your email and password",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Login Successful!",
-        description: "Welcome back to LaundryPro. Redirecting to your dashboard...",
+        description: "Welcome back to LaundryPro",
       });
-      setTimeout(() => {
-        navigate("/orders");
-      }, 1000);
+      
+      // Navigate after successful login
+      navigate("/orders");
+    } catch (error) {
+      toast({
+        title: "Login Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await signInWithGoogle();
-    if (error) {
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        toast({
+          title: "Google Authentication Failed",
+          description: error.message || "Failed to sign in with Google",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Redirecting to Google",
+          description: "Please complete authentication in the popup window",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Google Authentication Failed",
-        description: error.message,
+        title: "Authentication Error",
+        description: "Failed to initiate Google authentication",
         variant: "destructive",
       });
     }
@@ -71,16 +95,46 @@ const Login = () => {
 
   const handleFacebookLogin = () => {
     toast({
-      title: "Facebook Authentication", 
-      description: "Facebook login will be integrated with backend authentication",
+      title: "Facebook Login",
+      description: "Facebook authentication is not configured yet",
+      variant: "destructive",
     });
   };
 
-  const handleForgotPassword = () => {
-    toast({
-      title: "Password Reset",
-      description: "Password reset functionality will be integrated with backend",
-    });
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        toast({
+          title: "Reset Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset Email Sent",
+          description: "Check your email for password reset instructions",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Reset Error",
+        description: "Failed to send reset email. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
